@@ -7,9 +7,11 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
+from aiogram.utils.formatting import Bold, as_marked_list, Text, as_list, as_section
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
+from random_unicode_emoji import random_emoji
 
 import inMemoryData
 
@@ -38,11 +40,18 @@ async def send_simple_message():
 
 @dp.message(Command('discord'))
 async def send_discord_online_members(message: types.Message):
-    if len(inMemoryData.generalChannelData) == 0:
-        await message.reply('No one is online')
-
+    channel_sections = []
     for channel, members in inMemoryData.generalChannelData.items():
-        await message.reply(f'{channel}: {", ".join([member.display_name for member in members])}')
+        if len(members) != 0:
+            member_names = [member.display_name for member in members]
+            channel_sections.append(as_section(Text(random_emoji()[0], ' ', Bold(channel)), as_marked_list(*members)))
+
+    rdy_message = Text(as_list(*channel_sections))
+
+    if len(channel_sections) != 0:
+        await message.reply(**rdy_message.as_kwargs())
+    else:
+        await message.reply(text='Сервер пуст 🚽💀')
 
 
 async def init() -> None:
